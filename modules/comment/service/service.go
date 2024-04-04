@@ -36,15 +36,18 @@ gRPC TODO:
  3. Pack the array into correct format.
 */
 func (s *service) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	// 1.
 	comments, err := s.commentDAO.ListByVideoID(ctx, req.GetVideoId(), int(req.GetLimit()), int(req.GetOffset()))
 	if err != nil {
 		return nil, err
 	}
-	pbComments := make([]*pb.CommentInfo, 0, len(comments))
-	for _, comment := range comments {
+	// 2.
+	pbComments := make([]*pb.CommentInfo, 0, len(comments)) // protobuf
+	for _, comment := range comments {                      // data schema
 		pbComments = append(pbComments, comment.ToProto())
 	}
-	return &pb.ListCommentResponse{Comments: pbComments}, nil
+	// 3.
+	return &pb.ListCommentResponse{Comments: pbComments}, nil // protobuf
 }
 
 /*
@@ -56,16 +59,20 @@ gRPC TODO:
  4. Return the result. You may use .String() method to transform the return value of dao API to a string.
 */
 func (s *service) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	// 1.
 	_, err := s.videoClient.GetVideo(ctx, &videopb.GetVideoRequest{Id: req.GetVideoId()})
 	if err != nil {
 		return nil, err
 	}
-	comment := dao.Comment{VideoID: req.GetVideoId(), Content: req.GetContent()}
+	// 2.
+	comment := dao.Comment{VideoID: req.GetVideoId(), Content: req.GetContent()} // data schema
+	// 3.
 	id, err := s.commentDAO.Create(ctx, &comment)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.CreateCommentResponse{Id: id.String()}, nil
+	// 3.
+	return &pb.CreateCommentResponse{Id: id.String()}, nil // protobuf
 }
 
 /*
@@ -76,12 +83,13 @@ gRPC TODO:
     (Refer to the ToProto method defined in dao/comment.go. This method is used to transform data schema from dao into protobuf.)
 */
 func (s *service) UpdateComment(ctx context.Context, req *pb.UpdateCommentRequest) (*pb.UpdateCommentResponse, error) {
+	// 1.
 	commentID, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, ErrInvalidUUID
 	}
-
-	comment := dao.Comment{ID: commentID, Content: req.GetContent()} // VideoID??
+	// 2.
+	comment := dao.Comment{ID: commentID, Content: req.GetContent()} // VideoID?? // data schema
 	err = s.commentDAO.Update(ctx, &comment)
 	if err != nil {
 		if errors.Is(err, dao.ErrCommentNotFound) {
@@ -89,8 +97,9 @@ func (s *service) UpdateComment(ctx context.Context, req *pb.UpdateCommentReques
 		}
 		return nil, err
 	}
+	// 3.
 	pbcomment := comment.ToProto()
-	return &pb.UpdateCommentResponse{Comment: pbcomment}, nil
+	return &pb.UpdateCommentResponse{Comment: pbcomment}, nil // protobuf
 }
 
 /*
@@ -100,10 +109,12 @@ gRPC TODO:
 3. Return the response.
 */
 func (s *service) DeleteComment(ctx context.Context, req *pb.DeleteCommentRequest) (*pb.DeleteCommentResponse, error) {
+	// 1.
 	commentID, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, ErrInvalidUUID
 	}
+	// 2.
 	err = s.commentDAO.Delete(ctx, commentID)
 	if err != nil {
 		if errors.Is(err, dao.ErrCommentNotFound) {
@@ -111,6 +122,7 @@ func (s *service) DeleteComment(ctx context.Context, req *pb.DeleteCommentReques
 		}
 		return nil, err
 	}
+	// 3.
 	return &pb.DeleteCommentResponse{}, nil
 }
 
@@ -120,9 +132,11 @@ gRPC TODO:
 2. Return the response.
 */
 func (s *service) DeleteCommentByVideoID(ctx context.Context, req *pb.DeleteCommentByVideoIDRequest) (*pb.DeleteCommentByVideoIDResponse, error) {
+	// 1.
 	err := s.commentDAO.DeleteByVideoID(ctx, req.GetVideoId())
 	if err != nil {
 		return nil, err
 	}
+	// 2.
 	return &pb.DeleteCommentByVideoIDResponse{}, nil
 }

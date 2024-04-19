@@ -35,9 +35,10 @@ type PrometheusServiceMeter struct {
 	metric.Meter
 
 	server         *http.Server
-	requestCounter syncint64.Counter
+	requestCounter syncint64.Counter // 1
 	// TODO
-	responseTimeHistogram syncint64.Histogram
+	requestErrorCount     syncint64.Counter   // 3
+	responseTimeHistogram syncint64.Histogram // 2
 }
 
 // UnaryServerInterceptor is a gRPC server-side interceptor that provides Prometheus monitoring for Unary RPCs.
@@ -55,8 +56,11 @@ func (m *PrometheusServiceMeter) UnaryServerInterceptor() func(ctx context.Conte
 		resp, err := handler(ctx, req)
 
 		// update error request counter when error occurs
-		// TODO
 
+		// TODO
+		if err != nil {
+			m.requestErrorCount.Add(ctx, 1, attributes...)
+		}
 		// measure response time
 		responseTime := time.Since(start)
 		m.responseTimeHistogram.Record(ctx, responseTime.Milliseconds(), attributes...)
@@ -88,6 +92,10 @@ func NewPrometheusServiceMeter(ctx context.Context, conf *PrometheusServiceMeter
 
 	// initiate error request counter
 	// TODO
+	requestErrorCount, err := meter.SyncInt64().Counter("error request", instrument.WithDescription("count number of error requests"))
+	if err != nil {
+		logger.Fatal("failed to create error requests counter", zap.Error(err))
+	}
 
 	responseTimeHistogram, err := meter.SyncInt64().Histogram("response_time", instrument.WithDescription("measure response time"))
 	if err != nil {
@@ -98,15 +106,18 @@ func NewPrometheusServiceMeter(ctx context.Context, conf *PrometheusServiceMeter
 		server:         server,
 		requestCounter: requestCounter,
 		// TODO
+		requestErrorCount:     requestErrorCount,
 		responseTimeHistogram: responseTimeHistogram,
 	}
 }
 
 func newPrometheusExporter(conf *PrometheusServiceMeterConfig, logger *logkit.Logger) *prometheus.Exporter {
+	// exporter configuration
 	config := prometheus.Config{
 		DefaultHistogramBoundaries: conf.HistogramBoundaries,
 	}
 
+	// Controller organizes and synchronizes collection of metric data
 	c := controller.New(
 		processor.NewFactory(
 			selector.NewWithHistogramDistribution(
@@ -117,6 +128,7 @@ func newPrometheusExporter(conf *PrometheusServiceMeterConfig, logger *logkit.Lo
 		),
 	)
 
+	// Exporter is a Prometheus Exporter that embeds the OTel metric.Reader interface for easy instantiation with a MeterProvider
 	exporter, err := prometheus.New(config, c)
 	if err != nil {
 		logger.Fatal("failed to create prometheus exporter", zap.Error(err))

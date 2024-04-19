@@ -189,3 +189,5 @@ services:
     - migration
     depends_on:
     - postgres
+
+

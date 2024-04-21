@@ -92,7 +92,7 @@ func NewPrometheusServiceMeter(ctx context.Context, conf *PrometheusServiceMeter
 
 	// initiate error request counter
 	// TODO
-	requestErrorCount, err := meter.SyncInt64().Counter("error request", instrument.WithDescription("count number of error requests"))
+	requestErrorCount, err := meter.SyncInt64().Counter("error_request", instrument.WithDescription("count number of error requests"))
 	if err != nil {
 		logger.Fatal("failed to create error requests counter", zap.Error(err))
 	}
@@ -138,6 +138,7 @@ func newPrometheusExporter(conf *PrometheusServiceMeterConfig, logger *logkit.Lo
 }
 
 func newPrometheusServer(exporter *prometheus.Exporter, conf *PrometheusServiceMeterConfig, logger *logkit.Logger) *http.Server {
+	// server config
 	server := &http.Server{
 		Addr: conf.Addr,
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -150,12 +151,14 @@ func newPrometheusServer(exporter *prometheus.Exporter, conf *PrometheusServiceM
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
+	// server deal with TCP request(what server do)
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			logger.Error("failed to serve prometheus exporter", zap.Error(err))
 		}
 	}()
 
+	// successful message
 	logger.Info("serve prometheus exporter successfully")
 
 	return server

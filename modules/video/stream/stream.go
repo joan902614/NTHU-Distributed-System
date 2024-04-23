@@ -62,6 +62,7 @@ func (s *stream) HandleVideoCreated(ctx context.Context, req *pb.HandleVideoCrea
 	return &emptypb.Empty{}, nil
 }
 
+// transcode and upload to database
 func (s *stream) handleVideoWithVariant(ctx context.Context, id primitive.ObjectID, variant string, url string) error {
 	// we mock the video transcoding only
 	time.Sleep(3 * time.Second)
@@ -73,6 +74,7 @@ func (s *stream) handleVideoWithVariant(ctx context.Context, id primitive.Object
 	return nil
 }
 
+// create and send message to kafka
 func (s *stream) produceVideoCreatedWithScaleEvent(req *pb.HandleVideoCreatedRequest) error {
 	valueBytes, err := proto.Marshal(req)
 	if err != nil {

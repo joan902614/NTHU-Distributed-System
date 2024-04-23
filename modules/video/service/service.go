@@ -109,20 +109,21 @@ func (s *service) UploadVideo(stream pb.Video_UploadVideoServer) error {
 		return err
 	}
 
+	// video data
 	video := &dao.Video{
 		ID:     id,
 		Size:   size,
 		URL:    path.Join(s.storage.Endpoint(), s.storage.Bucket(), objectName),
 		Status: dao.VideoStatusUploaded,
 	}
-
+	// video database entry create
 	if err := s.videoDAO.Create(ctx, video); err != nil {
 		return err
 	}
 
 	// [Kafka TODO]
 	// [Describe] Video now is uploaded successfully, try to take advantage of produceVideoCreatedEvent here to send messages.
-	if err := s.produceVideoCreatedEvent(&pb.HandleVideoCreatedRequest{Scale: 0}); err != nil {
+	if err := s.produceVideoCreatedEvent(&pb.HandleVideoCreatedRequest{Id: video.ToProto().Id, Url: video.ToProto().Url, Scale: 0}); err != nil {
 		return err
 	}
 
@@ -158,12 +159,13 @@ func (s *service) DeleteVideo(ctx context.Context, req *pb.DeleteVideoRequest) (
 	return &pb.DeleteVideoResponse{}, nil
 }
 
+// create and send message to kafka
 func (s *service) produceVideoCreatedEvent(req *pb.HandleVideoCreatedRequest) error {
+	// create message
 	valueBytes, err := proto.Marshal(req)
 	if err != nil {
 		return err
 	}
-
 	msgs := []*kafkakit.ProducerMessage{
 		{Value: valueBytes},
 	}
@@ -173,5 +175,6 @@ func (s *service) produceVideoCreatedEvent(req *pb.HandleVideoCreatedRequest) er
 	if err := s.producer.SendMessages(msgs); err != nil {
 		return err
 	}
+
 	return nil
 }

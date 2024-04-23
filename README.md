@@ -62,4 +62,5 @@ complete this lab by following steps:
 ![3](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/27bd81dd-d04b-435d-9d9a-7867e80e863a)
 
 ## result
+![擷取](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/58063b2b-e256-4681-859d-b06ab7b494dc)
 

@@ -92,4 +92,14 @@ Then, enter below commands to get records in the database and the videos collect
 should see a record with “Variants” has 4 different values and map to 4 URLs. Like the image below.
 ![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/ccd600e4-a8ef-4d65-89eb-3ea7c8747d88)
 
+## result
+test:  
+![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/ba104c6e-b96e-480f-9791-8363b60dc8bd)
+![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/bceb1626-a322-4e2c-9382-1500bbe8a42c)
+![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/99d047c2-4c3e-4f3d-9709-144abb1a641a)
+![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/72eb53db-6fd0-4403-b3e5-f6f065dc9a43)
+
+run:
+![image](https://github.com/joan902614/NTHU-Distributed-System/assets/132533584/618c9a19-cacd-4c08-91ec-fcb6b2002820)
+
 
